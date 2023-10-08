@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.rocketreserver.ui.theme.RocketReserverTheme
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         TokenRepository.init(this)
@@ -48,7 +49,11 @@ private fun MainNavHost() {
         }
 
         composable(route = "${NavigationDestinations.LAUNCH_DETAILS}/{${NavigationArguments.LAUNCH_ID}}") { navBackStackEntry ->
-            LaunchDetails(launchId = navBackStackEntry.arguments!!.getString(NavigationArguments.LAUNCH_ID)!!)
+            LaunchDetails(
+                launchId = navBackStackEntry.arguments!!.getString(NavigationArguments.LAUNCH_ID)!!,
+                navigateToLogin = {
+                    navController.navigate(NavigationDestinations.LOGIN)
+                })
         }
 
         composable(route = NavigationDestinations.LOGIN) {
