@@ -2,7 +2,6 @@
 
 package com.example.rocketreserver
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,24 +24,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.apollographql.apollo3.api.ApolloResponse
+import com.apollographql.apollo3.api.Optional
 
 @Composable
 fun LaunchList(onLaunchClick: (launchId: String) -> Unit) {
+    var cursor: String? by remember { mutableStateOf(null) }
+
+    var response: ApolloResponse<LaunchListQuery.Data>? by remember { mutableStateOf(null) }
+
     var launchList by remember { mutableStateOf(emptyList<LaunchListQuery.Launch>()) }
-    LaunchedEffect(Unit) {
 
-        val response = apolloClient.query(LaunchListQuery()).execute()
+    LaunchedEffect(cursor) {
 
-        launchList = response.data?.launches?.launches?.filterNotNull() ?: emptyList()
+         response = apolloClient.query(LaunchListQuery(Optional.present(cursor))).execute()
+
+        launchList += response?.data?.launches?.launches?.filterNotNull() ?: emptyList()
 
     }
     LazyColumn {
         items(launchList) { launch ->
             LaunchItem(launch, onClick = onLaunchClick)
         }
+        item {
+
+            if (response?.data?.launches?.hasMore == true) {
+
+                LoadingItem()
+
+                cursor = response?.data?.launches?.cursor
+
+            }
+
+        }
     }
+
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LaunchItem(launch: LaunchListQuery.Launch, onClick: (launchId: String) -> Unit) {
     ListItem(
